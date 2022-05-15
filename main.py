@@ -44,7 +44,7 @@ while visited.sum() != n:
     best_v = np.inf
 
     for i in range(len(vp)):
-        d[i] = np.min([d[i], p_graph[0, i], u_dist + p_graph[u, i]])
+        d[i] = np.min([d[i], u_dist + p_graph[u, i]])
         if not visited[vp[i]] and d[i] < best_dist:
             best_dist = d[i]
             best_v = vp[i]
