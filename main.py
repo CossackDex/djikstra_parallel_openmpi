@@ -7,32 +7,22 @@ rank = comm.Get_rank()
 size = comm.Get_size()
 
 if rank == 0:
-    graph = np.array(
-        [
-            [np.inf, 2, np.inf, 4, np.inf],
-            [np.inf, np.inf, 3, 3, np.inf],
-            [np.inf, np.inf, np.inf, np.inf, 2],
-            [np.inf, np.inf, 3, np.inf, 4],
-            [np.inf, np.inf, np.inf, np.inf, np.inf],
-        ]
-    )
+    graph = np.array([[np.inf, 2, np.inf, 4, np.inf],
+                      [np.inf, np.inf, 3, 3, np.inf],
+                      [np.inf, np.inf, np.inf, np.inf, 2],
+                      [np.inf, np.inf, 3, np.inf, 4],
+                      [np.inf, np.inf, np.inf, np.inf, np.inf]])
     n = graph.shape[0]
     p = int(n / size)
 
     for i in range(1, size):
         if i != size - 1:
-            p_graph = graph[:, i * p : (i + 1) * p]
-            vp = np.arange(i * p, (i + 1) * p)
-            comm.send((p_graph, vp, n), i)
-
-        elif i == size - 1:
-            p_graph = graph[:, i * p :]
-            vp = np.arange(i * p, n)
-            comm.send((p_graph, vp, n), i)
-
+            p_graph = graph[:, i*p:(i+1)*p]
+            vp = np.arange(i*p, (i + 1) * p)
         else:
-            print(f"Proces {rank} nie bedzie bral udzialu w obliczeniach")
-            sys.stdout.flush()
+            p_graph = graph[:, i*p:]
+            vp = np.arange(i*p, n)
+        comm.send((p_graph, vp, n), i)
 
     p_graph = graph[:, :p]
     vp = np.arange(p)
@@ -55,17 +45,14 @@ while visited.sum() != n:
 
     for i in range(len(vp)):
         d[i] = np.min([d[i], p_graph[0, i], u_dist + p_graph[u, i]])
-        print(vp[i], d[i])
-        sys.stdout.flush()
         if not visited[vp[i]] and d[i] < best_dist:
             best_dist = d[i]
             best_v = vp[i]
 
     if best_v != np.inf:
-        print(f"Proces {rank}: wybieram wierzcholek {best_v} o dystansie {best_dist}")
-        print(f"{d}")
+        print(f'Proces {rank}: wybieram wierzcholek {best_v} o dystansie {best_dist}')
     else:
-        print(f"Proces {rank}: moje wszystkie wierzcholki zostaly odwiedzone")
+        print(f'Proces {rank}: moje wszystkie wierzcholki zostaly odwiedzone')
     sys.stdout.flush()
 
     best_dist, best_v = comm.allreduce((best_dist, best_v), op=MPI.MINLOC)
@@ -74,5 +61,5 @@ while visited.sum() != n:
     u_dist = best_dist
 
     if rank == 0:
-        print(f"Globalnie najlepszy wierzcholek to {best_v} o dystansie {best_dist}\n")
+        print(f'Globalnie najlepszy wierzcholek to {best_v} o dystansie {best_dist}\n')
         sys.stdout.flush()
