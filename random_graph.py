@@ -15,7 +15,3 @@ def generate_graph(n):
     adj[-1] = np.ones(n) * np.inf
 
     return adj
-
-
-np.random.seed(1234)
-print(generate_graph(5))
